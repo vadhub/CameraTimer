@@ -3,38 +3,27 @@ package com.abg.cameratimer
 import android.content.ContentValues
 import android.content.pm.PackageManager
 import android.os.Build
-import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.provider.MediaStore
 import android.util.Log
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.appcompat.app.AppCompatActivity
 import androidx.camera.core.CameraSelector
 import androidx.camera.core.ImageCapture
 import androidx.camera.core.ImageCaptureException
 import androidx.camera.core.Preview
 import androidx.camera.lifecycle.ProcessCameraProvider
-import androidx.camera.video.Recorder
-import androidx.camera.video.Recording
-import androidx.camera.video.VideoCapture
 import androidx.core.content.ContextCompat
 import com.abg.cameratimer.databinding.ActivityMainBinding
 import java.text.SimpleDateFormat
 import java.util.Locale
-import java.util.concurrent.ExecutorService
-import java.util.concurrent.Executors
-
-typealias LumaListener = (luma: Double) -> Unit
 
 class MainActivity : AppCompatActivity() {
     private lateinit var viewBinding: ActivityMainBinding
 
     private var imageCapture: ImageCapture? = null
 
-    private var videoCapture: VideoCapture<Recorder>? = null
-    private var recording: Recording? = null
-
-    private lateinit var cameraExecutor: ExecutorService
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -50,9 +39,6 @@ class MainActivity : AppCompatActivity() {
 
         // Set up the listeners for take photo and video capture buttons
         viewBinding.imageCaptureButton.setOnClickListener { takePhoto() }
-        viewBinding.videoCaptureButton.setOnClickListener { captureVideo() }
-
-        cameraExecutor = Executors.newSingleThreadExecutor()
     }
 
     private fun takePhoto() {// Get a stable reference of the modifiable image capture use case
@@ -94,8 +80,6 @@ class MainActivity : AppCompatActivity() {
                 }
             }
         )}
-
-    private fun captureVideo() {}
 
     private fun startCamera() {
         val cameraProviderFuture = ProcessCameraProvider.getInstance(this)
@@ -141,18 +125,12 @@ class MainActivity : AppCompatActivity() {
             baseContext, it) == PackageManager.PERMISSION_GRANTED
     }
 
-    override fun onDestroy() {
-        super.onDestroy()
-        cameraExecutor.shutdown()
-    }
-
     companion object {
         private const val TAG = "CameraXApp"
         private const val FILENAME_FORMAT = "yyyy-MM-dd-HH-mm-ss-SSS"
         private val REQUIRED_PERMISSIONS =
             mutableListOf (
-                android.Manifest.permission.CAMERA,
-                android.Manifest.permission.RECORD_AUDIO
+                android.Manifest.permission.CAMERA
             ).apply {
                 if (Build.VERSION.SDK_INT <= Build.VERSION_CODES.P) {
                     add(android.Manifest.permission.WRITE_EXTERNAL_STORAGE)
@@ -167,7 +145,7 @@ class MainActivity : AppCompatActivity() {
             // Handle Permission granted/rejected
             var permissionGranted = true
             permissions.entries.forEach {
-                if (it.key in REQUIRED_PERMISSIONS && it.value == false)
+                if (it.key in REQUIRED_PERMISSIONS && !it.value)
                     permissionGranted = false
             }
             if (!permissionGranted) {
