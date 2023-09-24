@@ -19,11 +19,11 @@ import com.abg.cameratimer.databinding.ActivityMainBinding
 import java.text.SimpleDateFormat
 import java.util.Locale
 
-class MainActivity : AppCompatActivity() {
+class MainActivity : AppCompatActivity(), TimerHandler {
     private lateinit var viewBinding: ActivityMainBinding
 
     private var imageCapture: ImageCapture? = null
-
+    private var timer: Timer? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -37,8 +37,12 @@ class MainActivity : AppCompatActivity() {
             requestPermissions()
         }
 
-        // Set up the listeners for take photo and video capture buttons
-        viewBinding.imageCaptureButton.setOnClickListener { takePhoto() }
+        viewBinding.timerImageButton.setOnClickListener { createDialog {
+            timer = Timer(it)
+            timer?.setTimerHandler(this)
+        } }
+
+        viewBinding.imageCaptureButton.setOnClickListener { timer?.startTimer() }
     }
 
     private fun takePhoto() {// Get a stable reference of the modifiable image capture use case
@@ -72,8 +76,7 @@ class MainActivity : AppCompatActivity() {
                     Log.e(TAG, "Photo capture failed: ${exc.message}", exc)
                 }
 
-                override fun
-                        onImageSaved(output: ImageCapture.OutputFileResults){
+                override fun onImageSaved(output: ImageCapture.OutputFileResults){
                     val msg = "Photo capture succeeded: ${output.savedUri}"
                     Toast.makeText(baseContext, msg, Toast.LENGTH_SHORT).show()
                     Log.d(TAG, msg)
@@ -95,8 +98,7 @@ class MainActivity : AppCompatActivity() {
                     it.setSurfaceProvider(viewBinding.viewFinder.surfaceProvider)
                 }
 
-            imageCapture = ImageCapture.Builder()
-                .build()
+            imageCapture = ImageCapture.Builder().build()
 
             // Select back camera as a default
             val cameraSelector = CameraSelector.DEFAULT_BACK_CAMERA
@@ -156,4 +158,18 @@ class MainActivity : AppCompatActivity() {
                 startCamera()
             }
         }
+
+    private fun createDialog(accept: (Long) -> Unit) {
+        val chooseTimeDialog = ChooseTimeDialog()
+        chooseTimeDialog.accept = accept
+        chooseTimeDialog.show(supportFragmentManager, "ChooseTimeDialog")
+    }
+
+    override fun showTime(time: Long) {
+        viewBinding.showTime.text = "$time"
+    }
+
+    override fun finishTime() {
+        takePhoto()
+    }
 }
