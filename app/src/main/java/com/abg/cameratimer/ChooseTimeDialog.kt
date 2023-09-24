@@ -5,36 +5,53 @@ import android.app.Dialog
 import android.content.Context
 import android.os.Bundle
 import android.util.Log
-import android.widget.NumberPicker
 import androidx.fragment.app.DialogFragment
+import com.abg.cameratimer.databinding.ChooseTimeDialogBinding
 import java.util.concurrent.TimeUnit
 
 class ChooseTimeDialog : DialogFragment() {
+
     lateinit var accept: (time: Long) -> Unit
+
+    private lateinit var viewBinding: ChooseTimeDialogBinding
 
     override fun onCreateDialog(savedInstanceState: Bundle?): Dialog {
 
-        val view = layoutInflater.inflate(R.layout.choose_time_dialog, null)
+        viewBinding = ChooseTimeDialogBinding.inflate(layoutInflater)
 
-        val arrayOfPeriod = initialArrayPeriod(view.context)
-        var period = arrayOfPeriod[0].second
+        val context = viewBinding.root.context
 
-        val picker = view.findViewById<NumberPicker>(R.id.pickerPeriodTime)
+        val arrayOfPeriodInSec = initialArrayPeriodInSec(context)
+        val arrayOfPeriodInMin = initialArrayPeriodInMin(context)
+
+        var period = arrayOfPeriodInSec[0].second
+
+        val picker = viewBinding.pickerPeriodTime
+        val pickerMin = viewBinding.pickerPeriodTimeMin
+
         picker.minValue = 0
-        picker.maxValue = 10
-        picker.displayedValues = arrayOfPeriod.map { it.first }.toTypedArray()
+        picker.maxValue = 58
+        picker.displayedValues = arrayOfPeriodInSec.map { it.first }.toTypedArray()
+
+        pickerMin.minValue = 0
+        pickerMin.maxValue = 58
+        pickerMin.displayedValues = arrayOfPeriodInMin.map { it.first }.toTypedArray()
 
         picker.setOnValueChangedListener { picker, oldVal, newVal ->
-            Log.d("picker", " ${arrayOfPeriod[newVal]}")
-            period = arrayOfPeriod[newVal].second
+            Log.d("picker", " ${arrayOfPeriodInSec[newVal]}")
+            period = arrayOfPeriodInSec[newVal].second
         }
 
-        val builder = AlertDialog.Builder(view.context)
+        pickerMin.setOnValueChangedListener{ picker, oldVal, newVal ->
+            period = arrayOfPeriodInMin[newVal].second
+        }
 
-        builder.setView(view)
-            .setPositiveButton(view.context.resources.getString(R.string.yes)) { _, _ ->
+        val builder = AlertDialog.Builder(context)
+
+        builder.setView(viewBinding.root)
+            .setPositiveButton(context.resources.getString(R.string.yes)) { _, _ ->
                 accept.invoke(period)
-            }.setNegativeButton(view.context.resources.getString(R.string.cancel)) { _, _ ->
+            }.setNegativeButton(context.resources.getString(R.string.cancel)) { _, _ ->
                 dialog?.cancel()
             }
 
@@ -42,18 +59,27 @@ class ChooseTimeDialog : DialogFragment() {
 
     }
 
-    private fun initialArrayPeriod(context: Context): List<Pair<String, Long>> {
+    private fun initialArrayPeriodInSec(context: Context): List<Pair<String, Long>> {
 
         val sec = context.resources.getString(R.string.sec)
+
+        val arrayTime = mutableListOf<Pair<String, Long>>()
+
+        for (i in 1..59) {
+            arrayTime.add(Pair("$i $sec", TimeUnit.SECONDS.toMillis(i.toLong())))
+        }
+
+        return arrayTime
+
+    }
+
+    private fun initialArrayPeriodInMin(context: Context): List<Pair<String, Long>> {
+
         val min = context.resources.getString(R.string.min)
 
         val arrayTime = mutableListOf<Pair<String, Long>>()
 
-        for (i in 1..60) {
-            arrayTime.add(Pair("$i $sec", TimeUnit.SECONDS.toMillis(i.toLong())))
-        }
-
-        for (i in 1..60) {
+        for (i in 1..59) {
             arrayTime.add(Pair("$i $min", TimeUnit.MINUTES.toMillis(i.toLong())))
         }
 
