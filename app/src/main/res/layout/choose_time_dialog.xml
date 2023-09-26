@@ -17,20 +17,20 @@
         android:layout_height="wrap_content">
 
         <NumberPicker
+            android:id="@+id/pickerPeriodTimeMin"
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:layout_gravity="center"
+            android:layout_marginHorizontal="10dp"
+            android:descendantFocusability="blocksDescendants" />
+
+        <NumberPicker
             android:id="@+id/pickerPeriodTime"
             android:layout_width="wrap_content"
             android:layout_height="match_parent"
             android:layout_marginHorizontal="10dp"
             android:layout_gravity="center"
             android:descendantFocusability="blocksDescendants" />
-
-        <NumberPicker
-            android:id="@+id/pickerPeriodTimeMin"
-            android:layout_width="wrap_content"
-            android:layout_height="match_parent"
-            android:layout_gravity="center"
-            android:descendantFocusability="blocksDescendants" />
-
 
     </LinearLayout>
 
