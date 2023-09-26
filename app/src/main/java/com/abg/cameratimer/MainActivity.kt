@@ -5,6 +5,7 @@ import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Bundle
 import android.provider.MediaStore
+import android.text.format.DateUtils
 import android.util.Log
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
@@ -18,6 +19,7 @@ import androidx.core.content.ContextCompat
 import com.abg.cameratimer.databinding.ActivityMainBinding
 import java.text.SimpleDateFormat
 import java.util.Locale
+import java.util.concurrent.TimeUnit
 
 class MainActivity : AppCompatActivity(), TimerHandler {
     private lateinit var viewBinding: ActivityMainBinding
@@ -42,7 +44,9 @@ class MainActivity : AppCompatActivity(), TimerHandler {
             timer?.setTimerHandler(this)
         } }
 
-        viewBinding.imageCaptureButton.setOnClickListener { timer?.startTimer() }
+        viewBinding.imageCaptureButton.setOnClickListener {
+            timer?.startTimer() ?: takePhoto()
+        }
     }
 
     private fun takePhoto() {// Get a stable reference of the modifiable image capture use case
@@ -166,10 +170,16 @@ class MainActivity : AppCompatActivity(), TimerHandler {
     }
 
     override fun showTime(time: Long) {
-        viewBinding.showTime.text = "$time"
+        Log.d("showTime", "$time")
+        if (time < 60_000) {
+            viewBinding.showTime.text = "${TimeUnit.MILLISECONDS.toSeconds(time)}"
+        } else {
+            viewBinding.showTime.text = DateUtils.formatElapsedTime(TimeUnit.MILLISECONDS.toSeconds(time))
+        }
     }
 
     override fun finishTime() {
+        viewBinding.showTime.text = ""
         takePhoto()
     }
 }
