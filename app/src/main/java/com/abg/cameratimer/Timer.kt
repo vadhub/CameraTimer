@@ -30,14 +30,10 @@ class Timer(private val time: Long) {
                 override fun onFinish() {
                     isStart = false
                     handler?.finishTime()
+                    handler = null
                 }
             }.start()
         }
-    }
-
-    fun restart(handler: TimerHandler) {
-        setTimerHandler(handler)
-        startTimer()
     }
 
     fun cancelTimer() {
